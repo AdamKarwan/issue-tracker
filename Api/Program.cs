@@ -1,5 +1,7 @@
 using Api.Context;
+using Api.Interfaces;
 using Api.Maps;
+using Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +28,9 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader();
     });
 });
+
+//register the task service
+builder.Services.AddScoped<ITaskService, TaskService>();
 
 var app = builder.Build();
 
