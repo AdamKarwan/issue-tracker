@@ -1,0 +1,59 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - MSSQL_SA_PASSWORD=${PASSWORD}
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserverdata:/var/opt/mssql
+      - ./install-tools-and-start.sh:/install-tools-and-start.sh
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/1433'"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  api:
+    build:
+      context: ./Api
+      dockerfile: Dockerfile
+    container_name: api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=task-tracker;User Id=sa;Password=${PASSWORD};TrustServerCertificate=True;
+    ports:
+      - "5000:5000"
+    depends_on:
+      - sqlserver
+      - migrate
+    networks:
+      - backend
+
+  migrate:
+    build:
+      context: ./Api
+      dockerfile: Dockerfile.migrate
+    container_name: migrate
+    working_dir: /app
+    volumes:
+      - ./Api:/app
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=task-tracker;User Id=sa;Password=${PASSWORD};TrustServerCertificate=True;
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - backend
+
+volumes:
+  sqlserverdata:
+
+networks:
+  backend:

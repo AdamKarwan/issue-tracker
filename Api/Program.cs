@@ -14,6 +14,12 @@ builder.Services.AddDbContext<ApiDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
+// Set the HTTPS port
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5000); // HTTP port
+});
+
 builder.Services.AddControllers();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -42,7 +48,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
-app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();

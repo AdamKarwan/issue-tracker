@@ -1,0 +1,1 @@
+add PASSWORD to .env

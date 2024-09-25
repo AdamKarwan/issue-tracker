@@ -1,0 +1,21 @@
+# Use the official .NET SDK image to build the application
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the project file and restore dependencies
+COPY *.csproj ./
+RUN dotnet restore
+
+# Copy the rest of the application code
+COPY . ./
+
+# Install the dotnet-ef tool for running migrations
+RUN dotnet tool install --global dotnet-ef
+
+# Ensure the dotnet tools are in the PATH
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+# Command to run the migrations
+ENTRYPOINT ["dotnet", "ef", "database", "update"]
